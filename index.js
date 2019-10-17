@@ -1,20 +1,32 @@
 const core = require('@actions/core');
-const wait = require('./wait');
+const github = require('@actions/github');
 
-
-// most @actions toolkit packages have async methods
 async function run() {
-  try { 
-    const ms = core.getInput('milliseconds');
-    console.log(`Waiting ${ms} milliseconds ...`)
+  try {
+    const inputs = {
+      token: core.getInput('repo-token', {required: true}),
+    }
+    const title = github.context.payload.pull_request.title;
 
-    core.debug((new Date()).toTimeString())
-    wait(parseInt(ms));
-    core.debug((new Date()).toTimeString())
 
-    core.setOutput('time', new Date().toTimeString());
-  } 
+    core.info(title);
+    const storybook = title.includes('STORYBOOK');
+    if (storybook) {
+      core.warning("PR is storybook, all good"); 
+      return;
+    }
+
+    core.info(title);
+    const matches = title.match(/(\w+-\d+)/)
+    if (!(matches)) {
+      core.warning("Jira ticket not in PR title");
+      core.setFailed();
+    }
+    const jiraTicketKey = matches[0];
+    core.info(`Jira Ticket Key: ${jiraTicketKey}`);
+  }
   catch (error) {
+    core.error(error);
     core.setFailed(error.message);
   }
 }
