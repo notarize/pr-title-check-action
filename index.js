@@ -21,6 +21,7 @@ async function run() {
     if (!(matches)) {
       core.warning("Jira ticket not in PR title");
       core.setFailed();
+      return;
     }
     const jiraTicketKey = matches[0];
     core.info(`Jira Ticket Key: ${jiraTicketKey}`);
